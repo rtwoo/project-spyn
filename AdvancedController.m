@@ -187,15 +187,15 @@ function handleKeyUp(src, event)
 			if motorStates('inRaise')
 				motorStates('inRaise') = false;
 				if ~motorStates('inLower')
-					brick.StopMotor(loader, 'Coast');
+					brick.StopMotor(loader, 'Brake');
 				end
 			end
 		case 'quote'
 			if motorStates('inLower')
 				motorStates('inLower') = false;
-			end
-			if ~motorStates('inRaise')
-					brick.StopMotor(loader, 'Coast');
+				if ~motorStates('inRaise')
+						brick.StopMotor(loader, 'Brake');
+				end
 			end
 	
 	end
