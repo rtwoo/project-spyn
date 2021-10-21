@@ -1,0 +1,1 @@
+global inAuto wheelCircum turnDiam;
