@@ -7,7 +7,6 @@ function botInit(brick)
 	WHEEL_CIRCUM = pi * wheelDiam;
 	TURN_DIAM = 8;
 	DRIVE_SPEED = 25;
-	TURN_SPEED = 25;
 	PORTS = containers.Map(...
 	{'RightMotor', 'LeftMotor', 'Touch', 'Ultra', 'Color'},...
 	{'D'         , 'A'        , '1'    , '2'    , '3'});
@@ -15,9 +14,6 @@ function botInit(brick)
 	{'STOP'     , 'PICKUP' , 'DROPOFF'},...
 	{[255, 0, 0], [0, 255, 0], [0, 0, 255]});
 	brick.SetColorMode(PORTS('Color'), 4);
-
-	turnRight();
-	turnAbout();
 
 	function startDrive()
 		brick.MoveMotor(strcat(PORTS('RightMotor'), PORTS('LeftMotor')), DRIVE_SPEED);
@@ -49,7 +45,6 @@ function botInit(brick)
 		brick.MoveMotorAngleRel(PORTS('RightMotor'), -TURN_SPEED, numRot * 360, 'Brake');
 		brick.MoveMotorAngleRel(PORTS('LeftMotor'), TURN_SPEED, numRot * 360, 'Brake');
 		waitForMotors();
-		fprintf("ran\n");
 	end
 	
 	function turnLeft()
@@ -76,16 +71,18 @@ function botInit(brick)
 	end
 	
 	function waitForMotors()
+		
 		brick.WaitForMotor(strcat(PORTS('RightMotor'), PORTS('LeftMotor')));
 	end
 	
 	function open = rightScan()
+		global PORTS DIST_OPEN;
 		open = brick.UltrasonicDist(PORTS('Ultra')) > DIST_OPEN;
 	end
 	
 	% * this should only used if the bot is stopped
 	function [rightOpen, leftOpen] = contactScan()
-		
+		global PORTS DIST_OPEN;
 		rightOpen = brick.UltrasonicDist(PORTS('Ultra')) > DIST_OPEN;
 		turnAbout();
 		leftOpen = brick.UltrasonicDist(PORTS('Ultra')) > DIST_OPEN;

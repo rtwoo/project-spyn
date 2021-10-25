@@ -1,0 +1,1 @@
+botInit(brick);
