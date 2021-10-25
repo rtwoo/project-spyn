@@ -5,16 +5,27 @@ function botInit()
 	IN_DRIVE = false;
 	wheelDiam = 5.5;
 	WHEEL_CIRCUM = pi * wheelDiam;
-	% PORTS = map
-	% COLORS = map
+	TURN_DIAM = 8;
+	DRIVE_SPEED = 25;
+	PORTS = containers.Map(...
+	{'RightMotor', 'LeftMotor', 'Touch', 'Ultra', 'Color'},...
+	{'D'         , 'A'        , '1'    , '2'    , '3'});
+	COLORS = containers.Map(...
+	{'STOP'     , 'PICKUP' , 'DROPOFF'},...
+	{[255, 0, 0], [0, 0, 0], [0, 0, 0]});
+	brick.SetColorMode(PORTS('Color'), 4);
 end
 
 function startDrive()
+	global IN_DRIVE;	
 	brick.MoveMotor(strcat(PORTS('RightMotor'), PORTS('LeftMotor')), DRIVE_SPEED);
+	IN_DRIVE = true;
 end
 
 function stopDrive()
+	global IN_DRIVE;
 	brick.StopAllMotors('Brake');
+	IN_DRIVE = false;
 end
 
 function turn(degrees, direction)
@@ -23,11 +34,12 @@ function turn(degrees, direction)
 	turnDist = deg2rad(degrees) * radian;
 	numRot = turnDist / WHEEL_CIRCUM;
 	dirSpeed = TURN_SPEED;
-	if diretion == 'LEFT'
+	if strcmp(direction, 'LEFT')
 		dirSpeed = -dirSpeed;
 	end
-	brick.MoveMotorAngleRel(PORTS('RightMotor'), -TURN_SPEED, numRot * 360, 'Brake');
-	brick.MoveMotorAngleRel(PORTS('LeftMotor'), TURN_SPEED, numRot * 360, 'Brake');
+	brick.MoveMotorAngleRel(PORTS('RightMotor'), -dirSpeed, numRot * 360, 'Brake');
+	brick.MoveMotorAngleRel(PORTS('LeftMotor'), dirSpeed, numRot * 360, 'Brake');
+	waitForMotors();
 end
 
 function turnRight()
@@ -37,6 +49,7 @@ function turnRight()
 	numRot = turnDist / WHEEL_CIRCUM;
 	brick.MoveMotorAngleRel(PORTS('RightMotor'), -TURN_SPEED, numRot * 360, 'Brake');
 	brick.MoveMotorAngleRel(PORTS('LeftMotor'), TURN_SPEED, numRot * 360, 'Brake');
+	waitForMotors();
 end
 
 function turnLeft()
@@ -46,6 +59,7 @@ function turnLeft()
 	numRot = turnDist / WHEEL_CIRCUM;
 	brick.MoveMotorAngleRel(PORTS('RightMotor'), TURN_SPEED, numRot * 360, 'Brake');
 	brick.MoveMotorAngleRel(PORTS('LeftMotor'), -TURN_SPEED, numRot * 360, 'Brake');
+	waitForMotors();
 end
 
 function turnAbout()
@@ -55,9 +69,29 @@ function turnAbout()
 	numRot = turnDist / WHEEL_CIRCUM;
 	brick.MoveMotorAngleRel(PORTS('RightMotor'), TURN_SPEED, numRot * 360, 'Brake');
 	brick.MoveMotorAngleRel(PORTS('LeftMotor'), -TURN_SPEED, numRot * 360, 'Brake');
+	waitForMotors();
 end
 
 % TODO: maybe just use sleep(seconds)
 function stop(duration)
 	
+end
+
+function waitForMotors()
+	global PORTS;
+	brick.WaitForMotor(strcat(PORTS('RightMotor'), PORTS('LeftMotor')));
+end
+
+function open = rightScan()
+	global PORTS DIST_OPEN;
+	open = brick.UltrasonicDist(PORTS('Ultra')) > DIST_OPEN;
+end
+
+% * this should only used if the bot is stopped
+function [rightOpen, leftOpen] = contactScan()
+	global PORTS DIST_OPEN;
+	rightOpen = brick.UltrasonicDist(PORTS('Ultra')) > DIST_OPEN;
+	turnAbout();
+	leftOpen = brick.UltrasonicDist(PORTS('Ultra')) > DIST_OPEN;
+	turnAbout();
 end
