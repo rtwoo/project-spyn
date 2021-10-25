@@ -29,7 +29,7 @@ function stopDrive()
 end
 
 function turn(degrees, direction)
-	global WHEEL_CIRCUM TURN_DIAM TURN_SPEED;
+	global WHEEL_CIRCUM TURN_DIAM TURN_SPEED PORTS;
 	radian = TURN_DIAM / 2;
 	turnDist = deg2rad(degrees) * radian;
 	numRot = turnDist / WHEEL_CIRCUM;
@@ -43,7 +43,7 @@ function turn(degrees, direction)
 end
 
 function turnRight()
-	global WHEEL_CIRCUM TURN_DIAM TURN_SPEED;
+	global WHEEL_CIRCUM TURN_DIAM TURN_SPEED PORTS;
 	radian = TURN_DIAM / 2;
 	turnDist = pi / 2 * radian;
 	numRot = turnDist / WHEEL_CIRCUM;
@@ -53,7 +53,7 @@ function turnRight()
 end
 
 function turnLeft()
-	global WHEEL_CIRCUM TURN_DIAM TURN_SPEED;
+	global WHEEL_CIRCUM TURN_DIAM TURN_SPEED PORTS;
 	radian = TURN_DIAM / 2;
 	turnDist = pi / 2 * radian;
 	numRot = turnDist / WHEEL_CIRCUM;
@@ -63,7 +63,7 @@ function turnLeft()
 end
 
 function turnAbout()
-	global WHEEL_CIRCUM TURN_DIAM TURN_SPEED;
+	global WHEEL_CIRCUM TURN_DIAM TURN_SPEED PORTS;
 	radian = TURN_DIAM / 2;
 	turnDist = pi * radian;
 	numRot = turnDist / WHEEL_CIRCUM;

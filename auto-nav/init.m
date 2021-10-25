@@ -1,5 +1,5 @@
 % * make sure you've run 'brick = ConnectBrick("pogger")' before executing this script
-global IN_AUTO IN_DRIVE WHEEL_CIRCUM TURN_DIAM TURN_SPEED DRIVE_SPEED PORTS COLORS;
+% global IN_AUTO IN_DRIVE WHEEL_CIRCUM TURN_DIAM TURN_SPEED DRIVE_SPEED PORTS COLORS;
 
 botInit();
 init();
