@@ -3,11 +3,11 @@ function botInit(brick)
 	% set up color sensor to be RGB
 	IN_AUTO = true;
 	IN_DRIVE = false;
-	wheelDiam = 5.5;
+	wheelDiam = 5.715;
 	WHEEL_CIRCUM = pi * wheelDiam;
-	TURN_DIAM = 8;
+	TURN_DIAM = 12.065;
 	DRIVE_SPEED = 25;
-	TURN_SPEED = 25;
+	TURN_SPEED = 50;
 	PORTS = containers.Map(...
 	{'RightMotor', 'LeftMotor', 'Touch', 'Ultra', 'Color'},...
 	{'D'         , 'A'        , '1'    , '2'    , '3'});
@@ -17,7 +17,9 @@ function botInit(brick)
 	brick.SetColorMode(PORTS('Color'), 4);
 
 	turnRight();
-	turnAbout();
+	turnLeft();
+	turnLeft();
+% 	turnAbout();
 
 	function startDrive()
 		brick.MoveMotor(strcat(PORTS('RightMotor'), PORTS('LeftMotor')), DRIVE_SPEED);
@@ -37,8 +39,8 @@ function botInit(brick)
 		if strcmp(direction, 'LEFT')
 			dirSpeed = -dirSpeed;
 		end
-		brick.MoveMotorAngleRel(PORTS('RightMotor'), -dirSpeed, numRot * 360, 'Brake');
-		brick.MoveMotorAngleRel(PORTS('LeftMotor'), dirSpeed, numRot * 360, 'Brake');
+		brick.MoveMotorAngleRel(PORTS('RightMotor'), dirSpeed, numRot * 360, 'Brake');
+		brick.MoveMotorAngleRel(PORTS('LeftMotor'), -dirSpeed, numRot * 360, 'Brake');
 		waitForMotors();
 	end
 	
@@ -46,8 +48,8 @@ function botInit(brick)
 		radian = TURN_DIAM / 2;
 		turnDist = pi / 2 * radian;
 		numRot = turnDist / WHEEL_CIRCUM;
-		brick.MoveMotorAngleRel(PORTS('RightMotor'), -TURN_SPEED, numRot * 360, 'Brake');
-		brick.MoveMotorAngleRel(PORTS('LeftMotor'), TURN_SPEED, numRot * 360, 'Brake');
+		brick.MoveMotorAngleRel(PORTS('RightMotor'), TURN_SPEED, numRot * 360, 'Brake');
+		brick.MoveMotorAngleRel(PORTS('LeftMotor'), -TURN_SPEED, numRot * 360, 'Brake');
 		waitForMotors();
 		fprintf("ran\n");
 	end
@@ -56,8 +58,8 @@ function botInit(brick)
 		radian = TURN_DIAM / 2;
 		turnDist = pi / 2 * radian;
 		numRot = turnDist / WHEEL_CIRCUM;
-		brick.MoveMotorAngleRel(PORTS('RightMotor'), TURN_SPEED, numRot * 360, 'Brake');
-		brick.MoveMotorAngleRel(PORTS('LeftMotor'), -TURN_SPEED, numRot * 360, 'Brake');
+		brick.MoveMotorAngleRel(PORTS('RightMotor'), -TURN_SPEED, numRot * 360, 'Brake');
+		brick.MoveMotorAngleRel(PORTS('LeftMotor'), TURN_SPEED, numRot * 360, 'Brake');
 		waitForMotors();
 	end
 	
