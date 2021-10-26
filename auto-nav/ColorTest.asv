@@ -6,74 +6,39 @@ driveSpeed = 15;
 
 testing = true;
 lookForColors = true;
-colorCode = 'table';
-actingOn = 'table';
-reset = true;
+colorCode = 'black';
 
 pause(3);
 while testing
 
 	color = brick.ColorRGB(colorPort);
-% 	disp(color);
+	disp(color);
 
-% 	if color(1) <= 10 && color(2) <= 10 && color(3) <= 10
-% 		if ~strcmp(colorCode, 'black')
-% 			colorCode = 'black';
-% 			lookForColors = true;
-% 			disp("looking");
-% 		end
-% 	elseif lookForColors
+	if color(1) <= 10 && color(2) <= 10 && color(3) <= 10
+		if ~strcmp(colorCode, 'black')
+			colorCode = 'black';
+			lookForColors = true;
+			disp("looking");
+		end
+	elseif lookForColors
 
 % 			pause(0.2);
 			if color(1) > 50
 				if color(2) < 50
 					colorCode = 'red';
-				elseif color(2) > 50 && color(3) < 50
+				elseif color(2) > 50 && ~(color(3) > 50)
 					colorCode = 'yellow';
-				else
-					colorCode = 'white';
 				end
 			else
-				if color(3) > 12 && color(3) < 20
+				if color(3) > 12
 					colorCode = 'blue';
 				elseif color(3) < 12
 					colorCode = 'green';
-				else
-					colorCode = 'table';
 				end
 			end
-
-			if ~(strcmp(actingOn, colorCode))
-				switch(colorCode)
-					case 'yellow'
-						% start driving
-						if reset
-% 							brick.MoveMotor(drivePorts, driveSpeed);
-							reset = false;
-						end
-					case 'red'
-						if reset
-% 							brick.StopAllMotors();
-							pause(4);
-% 							brick.MoveMotor(drivePorts, driveSpeed);
-							reset = false;
-							testing = false;
-						end
-					case 'green'
-						% raise arm
-					case 'blue'
-						% lower arm
-						testing = false;
-					case 'table'
-						disp("reset");
-						reset = true;
-				end
-				disp(colorCode);
-		end
-		actingOn = colorCode;
 			
-% 			if ~strcmp(colorCode, 'black')
-% 				lookForColors = false;
+			if ~strcmp(colorCode, 'black')
+				lookForColors = false;
 % 				switch(colorCode)
 % 					case 'yellow'
 % % 						brick.MoveMotor(drivePorts, driveSpeed);
@@ -97,9 +62,9 @@ while testing
 % 						testing = false;
 % 						disp("Acted Blue");
 % 				end
-% 			end
-% 			
-% 	end
+			end
+			
+	end
 	disp(colorCode);
 
 end
