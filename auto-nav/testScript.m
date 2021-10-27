@@ -1,1 +1,2 @@
 botInit(brick);
+init(brick);

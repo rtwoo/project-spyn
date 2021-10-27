@@ -14,17 +14,18 @@ pause(3);
 while testing
 
 	color = brick.ColorRGB(colorPort);
-% 	disp(color);
+	% disp(color);
 
-% 	if color(1) <= 10 && color(2) <= 10 && color(3) <= 10
-% 		if ~strcmp(colorCode, 'black')
-% 			colorCode = 'black';
-% 			lookForColors = true;
-% 			disp("looking");
-% 		end
-% 	elseif lookForColors
+	if color(1) <= 10 && color(2) <= 10 && color(3) <= 10
+		if ~strcmp(colorCode, 'black')
+			colorCode = 'black';
+			lookForColors = true;
+			disp("looking");
+		end
+	elseif lookForColors
 
-% 			pause(0.2);
+			% wait until the bot is on the center of the rectangle to check color
+			pause(0.2);
 			if color(1) > 50
 				if color(2) < 50
 					colorCode = 'red';
@@ -43,63 +44,63 @@ while testing
 				end
 			end
 
-			if ~(strcmp(actingOn, colorCode))
-				switch(colorCode)
-					case 'yellow'
-						% start driving
-						if reset
-% 							brick.MoveMotor(drivePorts, driveSpeed);
-							reset = false;
-						end
-					case 'red'
-						if reset
-% 							brick.StopAllMotors();
-							pause(4);
-% 							brick.MoveMotor(drivePorts, driveSpeed);
-							reset = false;
-							testing = false;
-						end
-					case 'green'
-						% raise arm
-					case 'blue'
-						% lower arm
-						testing = false;
-					case 'table'
-						disp("reset");
-						reset = true;
-				end
-				disp(colorCode);
-		end
-		actingOn = colorCode;
-			
-% 			if ~strcmp(colorCode, 'black')
-% 				lookForColors = false;
+% 			if ~(strcmp(actingOn, colorCode))
 % 				switch(colorCode)
 % 					case 'yellow'
-% % 						brick.MoveMotor(drivePorts, driveSpeed);
-% 						disp("Acted Yellow");
+% 						% start driving
+% 						if reset
+% % 							brick.MoveMotor(drivePorts, driveSpeed);
+% 							reset = false;
+% 						end
 % 					case 'red'
-% % 						brick.StopAllMotors();
-% % 						pause(4);
-% % 						brick.MoveMotor(drivePorts, driveSpeed);
-% 						disp("Acted Red");
+% 						if reset
+% % 							brick.StopAllMotors();
+% 							pause(4);
+% % 							brick.MoveMotor(drivePorts, driveSpeed);
+% 							reset = false;
+% 							testing = false;
+% 						end
 % 					case 'green'
-% % 						lift arm
-% % 						brick.StopAllMotors();
-% % 						brick.MoveMotorAngleRel(armPort, 50, 15, 'Coast');
-% % 						brick.WaitForMotor(armPort);
-% % 						brick.MoveMotor(drivePorts, driveSpeed);
-% 						disp("Acted Green");
+% 						% raise arm
 % 					case 'blue'
-% % 						brick.StopAllMotors();
-% % 						brick.MoveMotorAngleRel(armPort, -50, 15, 'Coast');
-% % 						brick.WaitForMotor(armPort);
+% 						% lower arm
 % 						testing = false;
-% 						disp("Acted Blue");
+% 					case 'table'
+% 						disp("reset");
+% 						reset = true;
 % 				end
-% 			end
-% 			
-% 	end
+% 				disp(colorCode);
+% 		end
+% 		actingOn = colorCode;
+			
+		if ~strcmp(colorCode, 'black')
+			lookForColors = false;
+			switch(colorCode)
+				case 'yellow'
+					brick.MoveMotor(drivePorts, driveSpeed);
+					disp("Acted Yellow");
+				case 'red'
+					brick.StopAllMotors();
+					pause(4);
+					brick.MoveMotor(drivePorts, driveSpeed);
+					disp("Acted Red");
+				case 'green'
+% 						lift arm
+					brick.StopAllMotors();
+					brick.MoveMotorAngleRel(armPort, 50, 15, 'Coast');
+					brick.WaitForMotor(armPort);
+					brick.MoveMotor(drivePorts, driveSpeed);
+					disp("Acted Green");
+				case 'blue'
+					brick.StopAllMotors();
+					brick.MoveMotorAngleRel(armPort, -50, 15, 'Coast');
+					brick.WaitForMotor(armPort);
+					testing = false;
+					disp("Acted Blue");
+			end
+		end
+			
+	end
 	disp(colorCode);
 
 end
