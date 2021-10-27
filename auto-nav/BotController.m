@@ -152,8 +152,30 @@ classdef BotController
 		
 		function open = leftScan()
 			open = brick.UltrasonicDist(PORTS('Ultra')) > DIST_OPEN;
-		end
+        end
+        
+        function colorZone = checkForColor(obj)
+			colorZone = 'STREET';
+            obj.colorTolerance;
+            currentColor = obj.brick.ColorRGB();
 
+			k = keys(obj.map_colors);
+			val = values(obj.map_colors);
+			for i = 1:length(obj.map_colors)
+				if (abs(currentColor(1) - val{i}(1)) < obj.colorTolerance)
+					if(abs(currentColor(2) - val{i}(2)) < obj.colorTolerance)
+						if((abs(currentColor(3) - val{i}(3)) < obj.colorTolerance))
+							colorZone = key{i};
+                            break
+						end
+					end
+				end
+			end
+		end
+           
+                   
+            
+            
 		% ! DEPRECATED, not needed in new nav algorithm
 		% % * this should only used if the bot is stopped
 		% function [rightOpen, leftOpen] = contactScan()
