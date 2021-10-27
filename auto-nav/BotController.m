@@ -11,10 +11,11 @@ classdef BotController
 		wheelCircum
 		steer_min
 		steer_max
-		opening_dist
+		steer_amt
+		wall_dist_max
 		map_ports
 		map_colors
-		colorTolerance
+		colorTol
 	end
 
 	properties (Access = private)
@@ -23,7 +24,9 @@ classdef BotController
 
 	methods
 
-		function obj = BotController(brick, driveSpeed, turnSpeed, wheelDiam, turnDiam, ports, colors)
+		function obj = BotController(brick, driveSpeed, turnSpeed,...
+			wheelDiam, turnDiam, steer_min, steer_max, steer_amt, opening_dist, ports, colors, colorTol)
+
 			obj.brick = brick;
 			obj.b_inAuto = false;
 			obj.b_inDrive = false;
@@ -32,8 +35,14 @@ classdef BotController
 			obj.wheelDiam = wheelDiam;
 			obj.turnDiam = turnDiam;
 			obj.wheelCircum = wheelDiam * pi;
+			obj.steer_min = steer_min;
+			obj.steer_max = steer_max;
+			obj.steer_amt = steer_amt;
+			obj.wall_dist_max = wall_dist_max;
 			obj.map_ports = ports;
 			obj.map_colors = colors;
+			obj.colorTol = colorTol;
+
 		end
 		
 		function circum = getCircum(obj)
@@ -49,8 +58,16 @@ classdef BotController
 				% TODO: create RGB vectors for various zones
 				% TODO: check if the values are within a threshold (e.g. +/- 15)
 
-				if ~obj.b_inDrive
-					obj.startDrive();
+				ultraDist = obj.brick.UltrasonicDist(obj.map_ports('ULTRA'));
+				if ultradist < obj.steer_min
+					% reduce power on right motor
+					obj.startDrive(obj.driveSpeed - obj.steer_amt, obj.drivespeed);
+				elseif ultraDist > obj.steer_max
+					% reduce power on left motor
+					obj.startDrive(obj.driveSpeed, obj.drivespeed - obj.steer_amt);
+				else
+					% equally power motors
+					obj.startDrive(obj.driveSpeed, obj.driveSpeed);
 				end
 
 				if obj.leftScan()
@@ -69,16 +86,17 @@ classdef BotController
 
 	methods (Access = private)
 
-		function startDrive(obj)
+		function startDrive(obj, rightSpeed, leftSpeed)
 			rightMotor = obj.map_ports('RightMotor');
 			leftMotor = obj.map_ports('LeftMotor');
-			obj.brick.MoveMotor(strcat(rightMotor, leftMotor), obj.driveSpeed);
-			obj.b_inAuto = true;
+			obj.brick.MoveMotor(rightMotor, rightSpeed);
+			obj.brick.MoveMotor(leftMotor, leftSpeed);
+			obj.b_inDrive = true;
 		end
 		
 		function stopDrive(obj)
 			obj.brick.StopAllMotors('Brake');
-			obj.b_inAuto = false;
+			obj.b_inDrive = false;
 		end
 		
 		function turn(obj, degrees, direction)
@@ -98,8 +116,8 @@ classdef BotController
 			radian = obj.turnDiam / 2;
 			turnDist = pi / 2 * radian;
 			numRot = turnDist / obj.wheelCircum;
-			brick.MoveMotorAngleRel(obj.map_ports('RightMotor'), TURN_SPEED, numRot * 360, 'Brake');
-			brick.MoveMotorAngleRel(obj.map_ports('LeftMotor'), -TURN_SPEED, numRot * 360, 'Brake');
+			obj.brick.MoveMotorAngleRel(obj.map_ports('RightMotor'), TURN_SPEED, numRot * 360, 'Brake');
+			obj.brick.MoveMotorAngleRel(obj.map_ports('LeftMotor'), -TURN_SPEED, numRot * 360, 'Brake');
 			waitForMotors();
 		end
 		
@@ -107,8 +125,8 @@ classdef BotController
 			radian = obj.turnDiam / 2;
 			turnDist = pi / 2 * radian;
 			numRot = turnDist / obj.wheelCircum;
-			brick.MoveMotorAngleRel(obj.map_ports('RightMotor'), -TURN_SPEED, numRot * 360, 'Brake');
-			brick.MoveMotorAngleRel(obj.map_ports('LeftMotor'), TURN_SPEED, numRot * 360, 'Brake');
+			obj.brick.MoveMotorAngleRel(obj.map_ports('RightMotor'), -TURN_SPEED, numRot * 360, 'Brake');
+			obj.brick.MoveMotorAngleRel(obj.map_ports('LeftMotor'), TURN_SPEED, numRot * 360, 'Brake');
 			waitForMotors();
 		end
 		
