@@ -1,46 +1,21 @@
-% ! DEPRECATED, USE BotController class
-% ! DEPRECATED, USE BotController class
-% ! DEPRECATED, USE BotController class
-% ! DEPRECATED, USE BotController class
-% ! DEPRECATED, USE BotController class
-% ! DEPRECATED, USE BotController class
-% ! DEPRECATED, USE BotController class
-% ! DEPRECATED, USE BotController class
-% ! DEPRECATED, USE BotController class
-% ! DEPRECATED, USE BotController class
-
 % * make sure you've run 'brick = ConnectBrick("pogger")' before executing this script
-function init()
+function init(brick)
 
-	global IN_AUTO IN_DRIVE WHEEL_CIRCUM TURN_DIAM TURN_SPEED DRIVE_SPEED PORTS COLORS;
+	% set up color sensor to be RGB
+	brick.SetColorMode(PORTS('Color'), 4);
 
-	while IN_AUTO
-		
-		% make sure color sensor checks aren't expensive
-		% if they are add a delay to this check
-% 		color_rgb = brick.ColorRGB(SensorPort);
-% 		if color_rgb == COLORS('STOP')
-% 			pause(3) % stop for 3 seconds
-% 		elseif color_rgb == COLORS('PICKUP') || color_rgb == COLORS('DROPOFF')
-% 			IN_AUTO = false;
-% 			startAdvControl();
-% 		end
-
-		if ~IN_DRIVE
-			startDrive();
-		end
-
-		if leftScan()
-			% maybe don't turn immediately, move forward a bit more
-			% it might be worth measuring where the hallway opening starts and ends
-			% to position the bot in the middle of the opening before turning
-			stopDrive();
-			turnLeft();
-		elseif brick.TouchPressed(PORTS('Touch'))
-			stopDrive();
-			turnRight();
-		end
-
-	end
+	driveSpeed = 25;
+	turnSpeed = 50;
+	wheelDiam = 5.715;
+	turnDiam = 12.065;
+	ports = containers.Map(...
+	{'RightMotor', 'LeftMotor', 'Touch', 'Ultra', 'Color'},...
+	{'D'         , 'A'        , '1'    , '2'    , '3'});
+	colors = containers.Map(...
+	{'STOP'     , 'PICKUP' , 'DROPOFF'},...
+	{[255, 0, 0], [0, 255, 0], [0, 0, 255]});
 	
+	bot = BotController(brick, driveSpeed, turnSpeed, wheelDiam, turnDiam, ports, colors);
+	bot.beginNav();
+
 end

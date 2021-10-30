@@ -1,2 +1,0 @@
-botInit(brick);
-init(brick);
