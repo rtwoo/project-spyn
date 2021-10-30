@@ -19,7 +19,7 @@ classdef BotController
 	end
 
 	properties (Access = private)
-
+		steer_mode
 	end
 
 	methods
@@ -43,6 +43,8 @@ classdef BotController
 			obj.map_colors = colors;
 			obj.colorTol = colorTol;
 
+			obj.steer_mode = 'none'
+
 		end
 		
 		function circum = getCircum(obj)
@@ -54,28 +56,50 @@ classdef BotController
 			obj.b_inAuto = true;
 			while obj.b_inAuto
 
-				% color checks here
-				% TODO: create RGB vectors for various zones
-				% TODO: check if the values are within a threshold (e.g. +/- 15)
-
-				ultraDist = obj.brick.UltrasonicDist(obj.map_ports('ULTRA'));
-				if ultradist < obj.steer_min
-					% reduce power on right motor
-					obj.startDrive(obj.driveSpeed - obj.steer_amt, obj.drivespeed);
-				elseif ultraDist > obj.steer_max
-					% reduce power on left motor
-					obj.startDrive(obj.driveSpeed, obj.drivespeed - obj.steer_amt);
-				else
-					% equally power motors
-					obj.startDrive(obj.driveSpeed, obj.driveSpeed);
+				colorZone = obj.checkForColor();
+				switch(colorZone)
+					case 'STOP'
+						obj.stopDrive();
+						pause(4);
+					case 'PICKUP'
+						if ~obj.hasPickedUp
+							% enter manual controller
+							obj.b_inAuto = false;
+							continue;
+						end
+					case 'DROPOFF'
+						if obj.hasPickedUp
+							% enter manual controller
+							obj.b_inAuto = false;
+							continue;
+						end
 				end
 
-				if obj.leftScan()
+				ultraDist = obj.brick.UltrasonicDist(obj.map_ports('ULTRA'));
+
+				if ultraDist > obj.wall_dist_max;
+					pause(1);
 					obj.stopDrive();
 					obj.turnLeft();
+					obj.startDrive(obj.driveSpeed, obj.driveSpeed);
+					pause(1);
 				elseif obj.brick.TouchPressed(obj.map_ports('TOUCH'))
 					obj.stopDrive();
 					obj.turnRight();
+				end
+				
+				if ultraDist < obj.steer_min && obj.steer_mode ~= 'away'
+					% reduce power on right motor
+					obj.startDrive(obj.driveSpeed - obj.steer_amt, obj.drivespeed);
+					obj.steer_mode = 'away';
+				elseif ultraDist > obj.steer_max && obj.steer_mode ~= 'toward'
+					% reduce power on left motor
+					obj.startDrive(obj.driveSpeed, obj.drivespeed - obj.steer_amt);
+					obj.steer_mode = 'toward';
+				elseif obj.steer_mode ~= 'straight'
+					% equally power motors
+					obj.startDrive(obj.driveSpeed, obj.driveSpeed);
+					obj.steer_mode = 'straight'
 				end
 
 			end
@@ -96,6 +120,7 @@ classdef BotController
 		
 		function stopDrive(obj)
 			obj.brick.StopAllMotors('Brake');
+			obj.steer_mode = 'none';
 			obj.b_inDrive = false;
 		end
 		
@@ -139,12 +164,7 @@ classdef BotController
 			waitForMotors();
 		end
 		
-		% TODO: maybe just use sleep(seconds)
-		function stop(duration)
-			
-		end
-		
-		function waitForMotors()
+		function waitForMotors(obj)
 			rightMotor = obj.map_ports('RightMotor');
 			leftMotor = obj.map_ports('LeftMotor');
 			brick.WaitForMotor(strcat(rightMotor, leftMotor));
@@ -152,29 +172,26 @@ classdef BotController
 		
 		function open = leftScan()
 			open = brick.UltrasonicDist(PORTS('Ultra')) > DIST_OPEN;
-        end
+		end
         
-        function colorZone = checkForColor(obj)
+		function colorZone = checkForColor(obj)
+
 			colorZone = 'STREET';
-            obj.colorTolerance;
-            currentColor = obj.brick.ColorRGB();
+			currentColor = obj.brick.ColorRGB();
 
 			k = keys(obj.map_colors);
-			val = values(obj.map_colors);
+			v = values(obj.map_colors);
 			for i = 1:length(obj.map_colors)
-				if (abs(currentColor(1) - val{i}(1)) < obj.colorTolerance)
-					if(abs(currentColor(2) - val{i}(2)) < obj.colorTolerance)
-						if((abs(currentColor(3) - val{i}(3)) < obj.colorTolerance))
-							colorZone = key{i};
-                            break
-						end
-					end
+				redCheck = abs(currentColor(1) - v{i}(1)) < obj.colorTol;
+				greenCheck = abs(currentColor(2) - v{i}(2)) < obj.colorTol;
+				blueCheck = abs(currentColor(3) - v{i}(3)) < obj.colorTol; 
+				if redCheck && greenCheck && blueCheck
+					colorZone = key{i};
+					break
 				end
 			end
-		end
-           
-                   
-            
+			
+		end                 
             
 		% ! DEPRECATED, not needed in new nav algorithm
 		% % * this should only used if the bot is stopped
