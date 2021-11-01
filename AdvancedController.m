@@ -1,213 +1,218 @@
-fig = figure("Name", "EV3 Controller", "KeyPressFcn", @handleKeyDown, "KeyReleaseFcn", @handleKeyUp);
-right = "D";
-left = "A";
-loader = "C";
-speed = 100;
-turnSpeed = 50;
-loaderSpeed = 10;
-% brick = "null";
+function AdvancedController(botController)
 
-motorStates = containers.Map(...
-	{"inForward", "inReverse", "inLeft", "inRight", "inTurnLeft", "inTurnRight", "inBrake", "inRaise", "inLower"},...
-	{false, false, false, false, false, false, false, false, false});
+	fig = figure("Name", "EV3 Controller", "KeyPressFcn", @handleKeyDown, "KeyReleaseFcn", @handleKeyUp);
+	right = "D";
+	left = "A";
+	loader = "C";
+	speed = 100;
+	turnSpeed = 50;
+	loaderSpeed = 10;
+	brick = botController.brick;
 
-t = timer;
-t.ExecutionMode = "fixedDelay";
-t.TimerFcn = @beep;
-t.UserData = struct(...
-	"Brick", brick...
-);
+	motorStates = containers.Map(...
+		{"inForward", "inReverse", "inLeft", "inRight", "inTurnLeft", "inTurnRight", "inBrake", "inRaise", "inLower"},...
+		{false, false, false, false, false, false, false, false, false});
 
-fig.UserData = struct(...
-	"Brick", brick,...
-	"Right", right,...
-	"Left", left,...
-	"Loader", loader,...
-	"Speed", speed,...
-	"TurnSpeed", turnSpeed,...
-	"LoaderSpeed", loaderSpeed,...
-	"MotorStates", motorStates,...
-	"BeepTimer", beep...
-);
+	t = timer;
+	t.ExecutionMode = "fixedDelay";
+	t.TimerFcn = @beep;
+	t.UserData = struct(...
+		"Brick", brick...
+	);
 
-function handleKeyDown(src, event)
+	fig.UserData = struct(...
+		"Brick", brick,...
+		"Right", right,...
+		"Left", left,...
+		"Loader", loader,...
+		"Speed", speed,...
+		"TurnSpeed", turnSpeed,...
+		"LoaderSpeed", loaderSpeed,...
+		"MotorStates", motorStates,...
+		"BeepTimer", beep,...
+		"BotController", botController...
+	);
 
-	userData = ancestor(src, "figure", "toplevel").UserData;
-	brick = userData.Brick;
-	right = userData.Right;
-	left = userData.Left;
-	loader = userData.Loader;
-	speed = userData.Speed;
-	turnSpeed = userData.TurnSpeed;
-	loaderSpeed = userData.LoaderSpeed;
-	motorStates = userData.MotorStates;
-	beep = userData.BeepTimer;
-	% global brick right left speed inForward inReverse inLeft inRight inTurnLeft inTurnRight inBrake;
-	fprintf("Pressed: " + event.Key + "\n");
-	
-	switch event.Key
+	function handleKeyDown(src, event)
 
-		case "w" % forward
-			if ~motorStates("inForward")
-				overrideMovement(motorStates);
-				brick.MoveMotor(right + left, speed);
-				motorStates("inForward") = true;
-			end
-		case "s" % reverse
-			if ~motorStates("inReverse")
-				overrideMovement(motorStates);
-				brick.MoveMotor(right + left, -speed);
-				motorStates("inReverse") = true;
-				start(beep);
-			end
-		case "a" % left
-			if motorStates("inForward")
-				if ~motorStates("inTurnLeft")
-					motorStates("inTurnRight") = false;
-					brick.MoveMotor(left, speed);
-					brick.MoveMotor(right, 0.5 * speed);
-					motorStates("inTurnLeft") = true;
-				end
-			elseif motorStates("inReverse")
-				if ~motorStates("inTurnLeft")
-					motorStates("inTurnRight") = false;
-					brick.MoveMotor(right, -speed);
-					brick.MoveMotor(left, 0.5 * -speed);
-					motorStates("inTurnLeft") = true;
-				end
-			elseif ~motorStates("inLeft")
-				overrideMovement(motorStates);
-				brick.MoveMotor(left, turnSpeed);
-				brick.MoveMotor(right, -turnSpeed);
-				motorStates("inLeft") = true;
-			end
-		case "d" % right
-			if motorStates("inForward")
-				if ~motorStates("inTurnRight")
-					motorStates("inTurnLeft") = false;
-					brick.MoveMotor(left, 0.5 * speed);
-					brick.MoveMotor(right, speed);
-					motorStates("inTurnRight") = true;
-				end
-			elseif motorStates("inReverse")
-				if ~motorStates("inTurnRight")
-					motorStates("inTurnLeft") = false;
-					brick.MoveMotor(right, 0.5 * -speed);
-					brick.MoveMotor(left, -speed);
-					motorStates("inTurnRight") = true;
-				end
-			elseif ~motorStates("inRight")
-				overrideMovement(motorStates);
-				brick.MoveMotor(right, turnSpeed);
-				brick.MoveMotor(left, -turnSpeed);
-				motorStates("inRight") = true;
-			end
-		case "space"
-			if ~motorStates("inBrake")
-				brick.StopAllMotors("Brake");
-				motorStates("inBrake") = true;
-			end
-		case "semicolon"
-			if ~motorStates("inRaise")
-				brick.MoveMotor(loader, loaderSpeed);
-				motorStates("inRaise") = true;
-				motorStates("inLower") = false;
-			end
-		case "quote"
-			if ~motorStates("inLower")
-				brick.MoveMotor(loader, -loaderSpeed);
-				motorStates("inLower") = true;
-				motorStates("inRaise") = false;
-			end
-		case "escape"
-			close(src);
-% 			IN_AUTO = true;
-% 			init();
-
-	end
-
-end
-
-function handleKeyUp(src, event)
-
-	userData = ancestor(src, "figure", "toplevel").UserData;
-	brick = userData.Brick;
-	right = userData.Right;
-	left = userData.Left;
-	loader = userData.Loader;
-	speed = userData.Speed;
-	turnSpeed = userData.TurnSpeed;
-	motorStates = userData.MotorStates;
-	beep = userData.BeepTimer;
-	% global brick right left inForward inReverse inLeft inRight inTurnLeft inTurnRight inBrake;
-	% fprintf("Released: " + event.Key + "\n");
-	switch event.Key
-
-		case "w" % forward
-			if motorStates("inForward")
-					brick.StopMotor(right + left, "Coast");
-					overrideMovement(userData.MotorStates);
-			end
-		case "s" % reverse
-			if motorStates("inReverse")
-					brick.StopMotor(right + left, "Coast");
-					motorStates("inReverse") = false;
-					stop(beep);
-			end
-		case "a" % left
-			if motorStates("inForward") && motorStates("inTurnLeft")
-				brick.MoveMotor(right, speed);
-				motorStates("inTurnLeft") = false;
-			elseif motorStates("inReverse") && motorStates("inTurnLeft")
-				brick.MoveMotor(left, -speed);
-				motorStates("inTurnLeft") = false;
-			elseif motorStates("inLeft")
-					brick.StopMotor(right + left, "Coast");
-					motorStates("inLeft") = false;
-			end
-		case "d" % right
-			if motorStates("inForward") && motorStates("inTurnRight")
-					brick.MoveMotor(left, speed);
-					motorStates("inTurnRight") = false;
-			elseif motorStates("inReverse") && motorStates("inTurnRight")
-					brick.MoveMotor(right, -speed);
-					motorStates("inTurnRight") = false;
-			elseif motorStates("inRight")
-					brick.StopMotor(right + left, "Coast");
-					motorStates("inRight") = false;
-			end
-		case "space"
-			if motorStates("inBrake")
-				motorStates("inBrake") = false;
-			end
-		case "semicolon"
-			if motorStates("inRaise")
-				motorStates("inRaise") = false;
-				if ~motorStates("inLower")
-					brick.StopMotor(loader, "Coast");
-				end
-			end
-		case "quote"
-			if motorStates("inLower")
-				motorStates("inLower") = false;
-				if ~motorStates("inRaise")
-						brick.StopMotor(loader, "Coast");
-				end
-			end
-	
-	end
+		userData = ancestor(src, "figure", "toplevel").UserData;
+		brick = userData.Brick;
+		right = userData.Right;
+		left = userData.Left;
+		loader = userData.Loader;
+		speed = userData.Speed;
+		turnSpeed = userData.TurnSpeed;
+		loaderSpeed = userData.LoaderSpeed;
+		motorStates = userData.MotorStates;
+		beep = userData.BeepTimer;
+		controller = userData.BotController;
+		% global brick right left speed inForward inReverse inLeft inRight inTurnLeft inTurnRight inBrake;
+		fprintf("Pressed: " + event.Key + "\n");
 		
-end
+		switch event.Key
 
-function overrideMovement(motorStates)
-	k = keys(motorStates);
-	for i = 1:length(motorStates)
-		motorStates(k{i}) = false;
+			case "w" % forward
+				if ~motorStates("inForward")
+					overrideMovement(motorStates);
+					brick.MoveMotor(right + left, speed);
+					motorStates("inForward") = true;
+				end
+			case "s" % reverse
+				if ~motorStates("inReverse")
+					overrideMovement(motorStates);
+					brick.MoveMotor(right + left, -speed);
+					motorStates("inReverse") = true;
+					start(beep);
+				end
+			case "a" % left
+				if motorStates("inForward")
+					if ~motorStates("inTurnLeft")
+						motorStates("inTurnRight") = false;
+						brick.MoveMotor(left, speed);
+						brick.MoveMotor(right, 0.5 * speed);
+						motorStates("inTurnLeft") = true;
+					end
+				elseif motorStates("inReverse")
+					if ~motorStates("inTurnLeft")
+						motorStates("inTurnRight") = false;
+						brick.MoveMotor(right, -speed);
+						brick.MoveMotor(left, 0.5 * -speed);
+						motorStates("inTurnLeft") = true;
+					end
+				elseif ~motorStates("inLeft")
+					overrideMovement(motorStates);
+					brick.MoveMotor(left, turnSpeed);
+					brick.MoveMotor(right, -turnSpeed);
+					motorStates("inLeft") = true;
+				end
+			case "d" % right
+				if motorStates("inForward")
+					if ~motorStates("inTurnRight")
+						motorStates("inTurnLeft") = false;
+						brick.MoveMotor(left, 0.5 * speed);
+						brick.MoveMotor(right, speed);
+						motorStates("inTurnRight") = true;
+					end
+				elseif motorStates("inReverse")
+					if ~motorStates("inTurnRight")
+						motorStates("inTurnLeft") = false;
+						brick.MoveMotor(right, 0.5 * -speed);
+						brick.MoveMotor(left, -speed);
+						motorStates("inTurnRight") = true;
+					end
+				elseif ~motorStates("inRight")
+					overrideMovement(motorStates);
+					brick.MoveMotor(right, turnSpeed);
+					brick.MoveMotor(left, -turnSpeed);
+					motorStates("inRight") = true;
+				end
+			case "space"
+				if ~motorStates("inBrake")
+					brick.StopAllMotors("Brake");
+					motorStates("inBrake") = true;
+				end
+			case "semicolon"
+				if ~motorStates("inRaise")
+					brick.MoveMotor(loader, loaderSpeed);
+					motorStates("inRaise") = true;
+					motorStates("inLower") = false;
+				end
+			case "quote"
+				if ~motorStates("inLower")
+					brick.MoveMotor(loader, -loaderSpeed);
+					motorStates("inLower") = true;
+					motorStates("inRaise") = false;
+				end
+			case "escape"
+				close(src);
+				controller.hasPickedUp = true;
+				controller.beginNav();
+		end
+
 	end
-end
 
-function beep(~, ~)
-	userData = ancestor(src, "timer", "toplevel").UserData;
-	brick = userData.Brick;
-	brick.beep();
+	function handleKeyUp(src, event)
+
+		userData = ancestor(src, "figure", "toplevel").UserData;
+		brick = userData.Brick;
+		right = userData.Right;
+		left = userData.Left;
+		loader = userData.Loader;
+		speed = userData.Speed;
+		turnSpeed = userData.TurnSpeed;
+		motorStates = userData.MotorStates;
+		beep = userData.BeepTimer;
+		% global brick right left inForward inReverse inLeft inRight inTurnLeft inTurnRight inBrake;
+		% fprintf("Released: " + event.Key + "\n");
+		switch event.Key
+
+			case "w" % forward
+				if motorStates("inForward")
+						brick.StopMotor(right + left, "Coast");
+						overrideMovement(userData.MotorStates);
+				end
+			case "s" % reverse
+				if motorStates("inReverse")
+						brick.StopMotor(right + left, "Coast");
+						motorStates("inReverse") = false;
+						stop(beep);
+				end
+			case "a" % left
+				if motorStates("inForward") && motorStates("inTurnLeft")
+					brick.MoveMotor(right, speed);
+					motorStates("inTurnLeft") = false;
+				elseif motorStates("inReverse") && motorStates("inTurnLeft")
+					brick.MoveMotor(left, -speed);
+					motorStates("inTurnLeft") = false;
+				elseif motorStates("inLeft")
+						brick.StopMotor(right + left, "Coast");
+						motorStates("inLeft") = false;
+				end
+			case "d" % right
+				if motorStates("inForward") && motorStates("inTurnRight")
+						brick.MoveMotor(left, speed);
+						motorStates("inTurnRight") = false;
+				elseif motorStates("inReverse") && motorStates("inTurnRight")
+						brick.MoveMotor(right, -speed);
+						motorStates("inTurnRight") = false;
+				elseif motorStates("inRight")
+						brick.StopMotor(right + left, "Coast");
+						motorStates("inRight") = false;
+				end
+			case "space"
+				if motorStates("inBrake")
+					motorStates("inBrake") = false;
+				end
+			case "semicolon"
+				if motorStates("inRaise")
+					motorStates("inRaise") = false;
+					if ~motorStates("inLower")
+						brick.StopMotor(loader, "Coast");
+					end
+				end
+			case "quote"
+				if motorStates("inLower")
+					motorStates("inLower") = false;
+					if ~motorStates("inRaise")
+							brick.StopMotor(loader, "Coast");
+					end
+				end
+		
+		end
+			
+	end
+
+	function overrideMovement(motorStates)
+		k = keys(motorStates);
+		for i = 1:length(motorStates)
+			motorStates(k{i}) = false;
+		end
+	end
+
+	function beep(~, ~)
+		userData = ancestor(src, "timer", "toplevel").UserData;
+		brick = userData.Brick;
+		brick.beep();
+	end
+	
 end
