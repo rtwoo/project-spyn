@@ -11,6 +11,13 @@ motorStates = containers.Map(...
 	{'inForward', 'inReverse', 'inLeft', 'inRight', 'inTurnLeft', 'inTurnRight', 'inBrake', 'inRaise', 'inLower'},...
 	{false, false, false, false, false, false, false, false, false});
 
+t = timer;
+t.ExecutionMode = 'fixedDelay';
+t.TimerFcn = @beep;
+t.UserData = struct(...
+	"Brick", brick...
+);
+
 fig.UserData = struct(...
 	"Brick", brick,...
 	"Right", right,...
@@ -19,7 +26,8 @@ fig.UserData = struct(...
 	"Speed", speed,...
 	"TurnSpeed", turnSpeed,...
 	"LoaderSpeed", loaderSpeed,...
-	"MotorStates", motorStates...
+	"MotorStates", motorStates,...
+	"BeepTimer", beep...
 );
 
 function handleKeyDown(src, event)
@@ -32,7 +40,8 @@ function handleKeyDown(src, event)
 	speed = userData.Speed;
 	turnSpeed = userData.TurnSpeed;
 	loaderSpeed = userData.LoaderSpeed;
-	motorStates = userData.MotorStates; 
+	motorStates = userData.MotorStates;
+	beep = userData.BeepTimer;
 	% global brick right left speed inForward inReverse inLeft inRight inTurnLeft inTurnRight inBrake;
 	fprintf("Pressed: " + event.Key + "\n");
 	
@@ -51,6 +60,7 @@ function handleKeyDown(src, event)
 				brick.MoveMotor(strcat(right, left), -speed);
 				fprintf("brick.MoveMotor(strcat(right, left), -speed);\n");
 				motorStates('inReverse') = true;
+				start(beep);
 			end
 		case 'a' % left
 			if motorStates('inForward')
@@ -138,7 +148,8 @@ function handleKeyUp(src, event)
 	loader = userData.Loader;
 	speed = userData.Speed;
 	turnSpeed = userData.TurnSpeed;
-	motorStates = userData.MotorStates; 
+	motorStates = userData.MotorStates;
+	beep = userData.BeepTimer;
 	% global brick right left inForward inReverse inLeft inRight inTurnLeft inTurnRight inBrake;
 	% fprintf("Released: " + event.Key + "\n");
 	switch event.Key
@@ -154,6 +165,7 @@ function handleKeyUp(src, event)
 					brick.StopMotor(strcat(right, left), 'Coast');
 					fprintf("brick.StopMotor(right + left, 'Coast')\n");
 					motorStates('inReverse') = false;
+					stop(beep);
 			end
 		case 'a' % left
 			if motorStates('inForward') && motorStates('inTurnLeft')
@@ -213,4 +225,10 @@ function overrideMovement(motorStates)
 	for i = 1:length(motorStates)
 		motorStates(k{i}) = false;
 	end
+end
+
+function beep(~, ~)
+	userData = ancestor(src, "timer", "toplevel").UserData;
+	brick = userData.Brick;
+	brick.beep();
 end
