@@ -56,31 +56,39 @@ classdef BotController
 		end
 
 		function beginNav(obj)
-
+			
+			colorReset = true;
 			obj.b_inAuto = true;
 			while obj.b_inAuto
 
 				% STEP 1: COLOR ZONE DETECTION
-				% colorZone = obj.checkForColor();
-				% switch(colorZone)
-				% 	case "STOP"
-				% 		obj.stopDrive();
-				% 		pause(4);
-				% 	case "PICKUP"
-				% 		if ~obj.hasPickedUp
-				% 			% enter manual controller
-				% 			AdvancedController(obj);
-				% 			obj.b_inAuto = false;
-				% 			continue;
-				% 		end
-				% 	case "DROPOFF"
-				% 		if obj.hasPickedUp
-				% 			% enter manual controller
-				% 			AdvancedController(obj);
-				% 			obj.b_inAuto = false;
-				% 			continue;
-				% 		end
-				% end
+				colorZone = obj.checkForColor();
+				disp(colorZone);
+				switch(colorZone)
+					case 'STOP'
+						if colorReset
+							colorReset = false;
+							obj.stopDrive();
+							pause(4);
+							obj.steer_mode = "none";
+						end
+% 					case "PICKUP"
+% 						if ~obj.hasPickedUp
+% 							% enter manual controller
+% 							AdvancedController(obj);
+% 							obj.b_inAuto = false;
+% 							continue;
+% 						end
+% 					case "DROPOFF"
+% 						if obj.hasPickedUp
+% 							% enter manual controller
+% 							AdvancedController(obj);
+% 							obj.b_inAuto = false;
+% 							continue;
+% 						end
+					case 'STREET'
+						colorReset = true;
+				end
 
 				ultraDist = obj.brick.UltrasonicDist(obj.map_ports("Ultra"));
 				turnTouch = obj.brick.TouchPressed(obj.map_ports("Touch"));
@@ -88,16 +96,20 @@ classdef BotController
 
 				% STEP 2: TURNING
 				if ultraDist > obj.wall_dist_max
-					pause(1);
+					disp("left turn");
+					obj.startDrive(obj.driveSpeed, obj.driveSpeed);
+					pause(2);
 					obj.stopDrive();
 					obj.turnLeft();
 					obj.startDrive(obj.driveSpeed, obj.driveSpeed);
-					pause(1);
+					pause(1.5);
 				elseif turnTouch
+					disp("right turn");
 					obj.stopDrive();
 					obj.startDrive(-obj.driveSpeed, -obj.driveSpeed);
-					pause(1);
+					pause(0.25);
 					obj.turnRight();
+					obj.steer_mode = "none";
 				elseif killTouch
 					obj.b_inAuto = false;
 					obj.brick.StopAllMotors();
@@ -105,11 +117,19 @@ classdef BotController
 				end
 				
 				% STEP 3: DRIVING & STEERING
-				if ultraDist < obj.steer_val
+				if ultraDist == obj.steer_val
+					if obj.steer_mode ~= "straight"
+						% power both motors equally
+						disp("straight");
+						obj.startDrive(obj.driveSpeed, obj.driveSpeed);
+						obj.steer_mode = "straight";
+					end
+				elseif ultraDist < obj.steer_val
 					% steer away
 					if obj.steer_mode ~= "away"
 						% reduce power on right motor
 						disp("away");
+% 						obj.stopDrive();
 						obj.startDrive(obj.driveSpeed - obj.steer_amt, obj.driveSpeed);
 						obj.steer_mode = "away";
 					end
@@ -118,6 +138,7 @@ classdef BotController
 					if obj.steer_mode ~= "toward"
 						% reduce power on left motor
 						disp("toward");
+% 						obj.stopDrive();
 						obj.startDrive(obj.driveSpeed, obj.driveSpeed - obj.steer_amt);
 						obj.steer_mode = "toward";
 					end
@@ -169,6 +190,25 @@ classdef BotController
 		function p_turn(obj, degrees, direction)
 			obj.turn(degrees, direction);
 		end
+
+		function colorZone = checkForColor(obj)
+
+			colorZone = 'STREET';
+			currentColor = obj.brick.ColorRGB(obj.map_ports("Color"));
+
+% 			k = keys(obj.map_colors);
+% 			v = values(obj.map_colors);
+% 			for i = 1:length(obj.map_colors)
+				redCheck = abs(double(currentColor(1)) - 70) < obj.colorTol;
+				greenCheck = abs(double(currentColor(2)) - 10) < obj.colorTol;
+				blueCheck = abs(double(currentColor(3)) - 10) < obj.colorTol; 
+				if redCheck && greenCheck && blueCheck
+					colorZone = 'STOP';
+% 					break;
+				end
+% 			end
+			
+		end    
 
 	end
 
@@ -227,7 +267,7 @@ classdef BotController
 
 			radian = obj.turnDiam / 2;
 			turnDist = pi / 2 * radian;
-			numRot = turnDist / obj.wheelCircum;
+			numRot = (turnDist * 0.9) / obj.wheelCircum;
 
 			rightMotor = obj.map_ports("RightMotor");
 			leftMotor = obj.map_ports("LeftMotor");
@@ -262,26 +302,7 @@ classdef BotController
 		% ! UNUSED
 		function open = leftScan(obj)
 			open = obj.brick.UltrasonicDist(PORTS("Ultra")) > DIST_OPEN;
-		end
-        
-		function colorZone = checkForColor(obj)
-
-			colorZone = "STREET";
-			currentColor = obj.brick.ColorRGB();
-
-			k = keys(obj.map_colors);
-			v = values(obj.map_colors);
-			for i = 1:length(obj.map_colors)
-				redCheck = abs(currentColor(1) - v{i}(1)) < obj.colorTol;
-				greenCheck = abs(currentColor(2) - v{i}(2)) < obj.colorTol;
-				blueCheck = abs(currentColor(3) - v{i}(3)) < obj.colorTol; 
-				if redCheck && greenCheck && blueCheck
-					colorZone = k{i};
-					break
-				end
-			end
-			
-		end                 
+		end             
             
 		% ! DEPRECATED, not needed in new nav algorithm
 		% % * this should only used if the bot is stopped
