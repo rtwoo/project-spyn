@@ -15,11 +15,11 @@ classdef BotController
 		map_ports
 		map_colors
 		colorTol
-		hasPickedUp
 	end
 
 	properties (Access = private)
 		steer_mode
+		hasPickedUp
 	end
 
 	methods
@@ -54,7 +54,7 @@ classdef BotController
 			wallSeen = false;
 			min = 14;
 			max = 18;
-			steerMode = 2;
+			steerMode = 1;
 
 			while obj.b_inAuto
 
@@ -68,7 +68,7 @@ classdef BotController
 							colorReset = false;
 							obj.stopDrive();
 							pause(4);
-							obj.steer_mode = "none";
+							% obj.steer_mode = "none";
 						end
 					case 'PICKUP'
 						if ~obj.hasPickedUp
@@ -104,23 +104,19 @@ classdef BotController
 					disp("left turn");
 					clearCornerDist = 31.75;
 					numRot = clearCornerDist / obj.wheelCircum;
-					rightMotor = obj.map_ports('RIGHT_MOTOR');
-					leftMotor = obj.map_ports('LEFT_MOTOR');
-					obj.brick.MoveMotorAngleRel(strcat(rightMotor, leftMotor), obj.driveSpeed, numRot * 360, 'Coast');
-					obj.brick.WaitForMotor(strcat(rightMotor, leftMotor));
+					obj.brick.MoveMotorAngleRel(strcat(RIGHT_MOTOR, LEFT_MOTOR), obj.driveSpeed, numRot * 360, 'Coast');
 					obj.stopDrive();
 					obj.turnLeft();
 					obj.startDrive(obj.driveSpeed, obj.driveSpeed);
 					wallSeen = false;
 					disp("no longer tracking wall");
-					obj.steer_mode = "none";
 				elseif turnTouch
 					disp("right turn");
 					obj.stopDrive();
 					obj.startDrive(-obj.driveSpeed, -obj.driveSpeed);
 					pause(0.25);
 					obj.turnRight();
-					obj.steer_mode = "none";
+					% obj.steer_mode = "none";
 				elseif killTouch
 					obj.b_inAuto = false;
 					obj.brick.StopAllMotors();
@@ -129,9 +125,7 @@ classdef BotController
 
 				% STEP 3: DRIVING & STEERING
 				if wallSeen
-
 					if steerMode == 1		
-
 						if ultraDist == obj.steer_val
 							% steer straight
 							if obj.steer_mode ~= "straight"
@@ -157,10 +151,8 @@ classdef BotController
 								obj.steer_mode = "toward";
 							end
 						end
-
 					elseif steerMode == 2
-
-						if ultraDist > min && ultraDist < max
+						if ultraDist > min && ultradist < max
 							% steer straight
 							if obj.steer_mode ~= "straight"
 								% power both motors equally
@@ -187,9 +179,7 @@ classdef BotController
 								end
 							end
 						end
-
 					end
-
 				end
 
 			end

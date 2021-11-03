@@ -127,6 +127,8 @@ function AdvancedController(botController)
 				if ~controller.hasPickedUp
 					controller.hasPickedUp = true;
 					controller.beginNav();
+				elseif controller.hasPickedUp
+					
 				end
 		end
 
