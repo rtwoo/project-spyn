@@ -45,8 +45,7 @@ function AdvancedController(botController)
 		loaderSpeed = userData.LoaderSpeed;
 		motorStates = userData.MotorStates;
 		beep = userData.BeepTimer;
-% 		controller = userData.BotController;
-		% global brick right left speed inForward inReverse inLeft inRight inTurnLeft inTurnRight inBrake;
+		controller = userData.BotController;
 % 		fprintf("Pressed: " + event.Key + "\n");
 		
 		switch event.Key
@@ -125,8 +124,8 @@ function AdvancedController(botController)
 				end
 			case 'escape'
 				close(src);
-% 				controller.hasPickedUp = true;
-% 				controller.beginNav();
+				controller.hasPickedUp = true;
+				controller.beginNav();
 		end
 
 	end
@@ -142,8 +141,8 @@ function AdvancedController(botController)
 		turnSpeed = userData.TurnSpeed;
 		motorStates = userData.MotorStates;
 		beep = userData.BeepTimer;
-		% global brick right left inForward inReverse inLeft inRight inTurnLeft inTurnRight inBrake;
 		% fprintf('Released: ' + event.Key + '\n');
+
 		switch event.Key
 
 			case 'w' % forward
@@ -213,7 +212,7 @@ function AdvancedController(botController)
 
 	function beep(src, ~)
 		userData = src.UserData;
-		disp("beeping");
+		% disp("beeping");
 		brick = userData.Brick;
 		brick.playTone(100, 1000, 500);
 	end

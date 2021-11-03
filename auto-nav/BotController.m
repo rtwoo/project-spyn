@@ -9,8 +9,6 @@ classdef BotController
 		wheelDiam
 		turnDiam
 		wheelCircum
-% 		steer_min
-% 		steer_max
 		steer_val
 		steer_amt
 		wall_dist_max
@@ -32,15 +30,13 @@ classdef BotController
 			obj.brick = brick;
 			obj.b_inAuto = false;
 			obj.b_inDrive = false;
-			obj.driveSpeed = driveSpeed;
+			obj.driveSpeed = -driveSpeed;
 			obj.turnSpeed = turnSpeed;
 			obj.wheelDiam = wheelDiam;
 			obj.turnDiam = turnDiam;
 			obj.wheelCircum = wheelDiam * pi;
-% 			obj.steer_min = steer_min;
-% 			obj.steer_max = steer_max;
 			obj.steer_val = steer_val;
-			obj.steer_amt = steer_amt;
+			obj.steer_amt = -steer_amt;
 			obj.wall_dist_max = wall_dist_max;
 			obj.map_ports = ports;
 			obj.map_colors = colors;
@@ -49,10 +45,6 @@ classdef BotController
 			obj.steer_mode = "none";
 			obj.hasPickedUp = false;
 
-		end
-		
-		function circum = getCircum(obj)
-			circum = obj.wheelDiam * pi;
 		end
 
 		function beginNav(obj)
@@ -70,24 +62,26 @@ classdef BotController
 							colorReset = false;
 							obj.stopDrive();
 							pause(4);
-							obj.steer_mode = "none";
+							% obj.steer_mode = "none";
 						end
-% 					case "PICKUP"
-% 						if ~obj.hasPickedUp
-% 							% enter manual controller
-% 							AdvancedController(obj);
-% 							obj.b_inAuto = false;
-% 							continue;
-% 						end
-% 					case "DROPOFF"
-% 						if obj.hasPickedUp
-% 							% enter manual controller
-% 							AdvancedController(obj);
-% 							obj.b_inAuto = false;
-% 							continue;
-% 						end
+					case 'PICKUP'
+						if ~obj.hasPickedUp
+							% enter manual controller
+							AdvancedController(obj);
+							obj.b_inAuto = false;
+							continue;
+						end
+					case 'DROPOFF'
+						if obj.hasPickedUp
+							% enter manual controller
+							AdvancedController(obj);
+							obj.b_inAuto = false;
+							continue;
+						end
 					case 'STREET'
-						colorReset = true;
+						if ~colorReset
+							colorReset = true;
+						end
 				end
 
 				ultraDist = obj.brick.UltrasonicDist(obj.map_ports("Ultra"));
@@ -109,7 +103,7 @@ classdef BotController
 					obj.startDrive(-obj.driveSpeed, -obj.driveSpeed);
 					pause(0.25);
 					obj.turnRight();
-					obj.steer_mode = "none";
+					% obj.steer_mode = "none";
 				elseif killTouch
 					obj.b_inAuto = false;
 					obj.brick.StopAllMotors();
@@ -118,6 +112,7 @@ classdef BotController
 				
 				% STEP 3: DRIVING & STEERING
 				if ultraDist == obj.steer_val
+					% steer straight
 					if obj.steer_mode ~= "straight"
 						% power both motors equally
 						disp("straight");
@@ -129,7 +124,6 @@ classdef BotController
 					if obj.steer_mode ~= "away"
 						% reduce power on right motor
 						disp("away");
-% 						obj.stopDrive();
 						obj.startDrive(obj.driveSpeed - obj.steer_amt, obj.driveSpeed);
 						obj.steer_mode = "away";
 					end
@@ -138,36 +132,10 @@ classdef BotController
 					if obj.steer_mode ~= "toward"
 						% reduce power on left motor
 						disp("toward");
-% 						obj.stopDrive();
 						obj.startDrive(obj.driveSpeed, obj.driveSpeed - obj.steer_amt);
 						obj.steer_mode = "toward";
 					end
 				end
-
-% 				if ultraDist > obj.steer_min && ultraDist < obj.steer_max
-% 					if obj.steer_mode ~= "straight"
-% 						% equally power motors
-% 						disp("straight");
-% 						obj.startDrive(obj.driveSpeed, obj.driveSpeed);
-% 						obj.steer_mode = "straight";
-% 					end
-% 				else
-% 					if ultraDist < obj.steer_min
-% 						if obj.steer_mode ~= "away"
-% 							% reduce power on right motor
-% 							disp("away");
-% 							obj.startDrive(obj.driveSpeed - -10, obj.driveSpeed);
-% 							obj.steer_mode = "away";
-% 						end
-% 					elseif ultraDist > obj.steer_min
-% 						if obj.steer_mode ~= "toward"
-% 							% reduce power on left motor
-% 							disp("toward");
-% 							obj.startDrive(obj.driveSpeed, obj.driveSpeed - -10);
-% 							obj.steer_mode = "toward";
-% 						end
-% 					end
-% 				end
 
 			end
 			
@@ -196,19 +164,19 @@ classdef BotController
 			colorZone = 'STREET';
 			currentColor = obj.brick.ColorRGB(obj.map_ports("Color"));
 
-% 			k = keys(obj.map_colors);
-% 			v = values(obj.map_colors);
-% 			for i = 1:length(obj.map_colors)
-				redCheck = abs(double(currentColor(1)) - 70) < obj.colorTol;
-				greenCheck = abs(double(currentColor(2)) - 10) < obj.colorTol;
-				blueCheck = abs(double(currentColor(3)) - 10) < obj.colorTol; 
+			k = keys(obj.map_colors);
+			v = values(obj.map_colors);
+			for i = 1:length(obj.map_colors)
+				redCheck = abs(double(currentColor(1)) - v{i}(1)) < obj.colorTol;
+				greenCheck = abs(double(currentColor(2)) - v{i}(2)) < obj.colorTol;
+				blueCheck = abs(double(currentColor(3)) - v{i}(3)) < obj.colorTol; 
 				if redCheck && greenCheck && blueCheck
-					colorZone = 'STOP';
-% 					break;
+					colorZone = k{i};
+					break;
 				end
-% 			end
-			
-		end    
+			end
+
+		end
 
 	end
 

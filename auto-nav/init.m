@@ -1,27 +1,34 @@
-% * make sure you"ve run "brick = ConnectBrick("pogger")" before executing this script
-function init(brick)
+%============%
+%   CONFIG   %
+%============%
 
-	% set up color sensor to be RGB
-% 	brick.SetColorMode(PORTS("Color"), 4);
+% motor power percentage when driving (1-100)
+driveSpeed = 30;
+% motor power percentage when turning (1-100)
+turnSpeed = 25;
 
-	driveSpeed = 25;
-	turnSpeed = 50;
-	wheelDiam = 5.715;
-	turnDiam = 12.065;
-	steer_min = 12;
-	steer_max = 21;
-	steer_amt = 10;
-	wall_dist_max = 70;
-	ports = containers.Map(...
-	["RightMotor", "LeftMotor", "Touch", "Ultra", "Color"],...
-	["D"         , "A"        , "4"    , "2"    , "3"]);
-	colors = containers.Map(...
-	["STOP"     , "PICKUP" , "DROPOFF"],...
-	{[255, 0, 0], [0, 255, 0], [0, 0, 255]});
-	colorTol = 20;
-	
-	bot = BotController(brick, driveSpeed, turnSpeed,...
-					wheelDiam, turnDiam, steer_min, steer_max, steer_amt, wall_dist_max, ports, colors, colorTol);
-	bot.beginNav();
+% wheel diameter (cm)
+wheelDiam = 5.715;
+% distance between wheels (cm)
+turnDiam = 12.065;
 
-end
+% desired distance from wall when steering (cm)
+steer_val = 16;
+% motor power reduction when steering
+steer_amt = driveSpeed * 0.2;
+
+% maximum allowed distance from wall before left turn is performed
+wall_dist_max = 40;
+
+ports = containers.Map(...
+{'RightMotor', 'LeftMotor', 'Touch', 'Ultra', 'Color', 'Kill'},...
+{'D'          , 'A'         , 4      , 2      , 3      , 1     });
+colors = containers.Map(...
+{'STOP'     , 'PICKUP'   , 'DROPOFF'  , 'FOURTH' },...
+{[70, 10, 10], [-500, -500, -500], [-500, -500, -500], [-500, -500, -500]});
+colorTol = 20;
+
+% BotController constructor
+bot = BotController(brick, driveSpeed, turnSpeed,...
+				wheelDiam, turnDiam, steer_val, steer_amt, wall_dist_max, ports, colors, colorTol);
+% 	bot.beginNav();
