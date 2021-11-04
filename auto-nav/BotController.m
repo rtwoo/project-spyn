@@ -9,9 +9,11 @@ classdef BotController
 		wheelDiam
 		turnDiam
 		wheelCircum
-		steer_val
+		steer_min
+		steer_max
 		steer_amt
 		wall_dist_max
+		corner_clear_dist
 		map_ports
 		map_colors
 		colorTol
@@ -25,7 +27,7 @@ classdef BotController
 	methods
 
 		function obj = BotController(brick, driveSpeed, turnSpeed,...
-			wheelDiam, turnDiam, steer_val, steer_amt, wall_dist_max, ports, colors, colorTol)
+			wheelDiam, turnDiam, steer_min, steer_max, wall_dist_max, ports, colors, colorTol)
 
 			obj.brick = brick;
 			obj.b_inAuto = false;
@@ -35,9 +37,11 @@ classdef BotController
 			obj.wheelDiam = wheelDiam;
 			obj.turnDiam = turnDiam;
 			obj.wheelCircum = wheelDiam * pi;
-			obj.steer_val = steer_val;
+			obj.steer_min = steer_min;
+			obj.steer_max = steer_max;
 			obj.steer_amt = -steer_amt;
 			obj.wall_dist_max = wall_dist_max;
+			obj.corner_clear_dist = corner_clear_dist;
 			obj.map_ports = ports;
 			obj.map_colors = colors;
 			obj.colorTol = colorTol;
@@ -52,9 +56,6 @@ classdef BotController
 			colorReset = true;
 			obj.b_inAuto = true;
 			wallSeen = false;
-			min = 14;
-			max = 18;
-			steerMode = 2;
 
 			while obj.b_inAuto
 
@@ -102,25 +103,25 @@ classdef BotController
 				% STEP 2: TURNING
 				if ultraDist > obj.wall_dist_max && wallSeen
 					disp("left turn");
-					clearCornerDist = 31.75;
-					numRot = clearCornerDist / obj.wheelCircum;
+					numRot = obj.corner_clear_dist / obj.wheelCircum;
 					rightMotor = obj.map_ports('RIGHT_MOTOR');
 					leftMotor = obj.map_ports('LEFT_MOTOR');
+					% obj.stopDrive();
+					obj.brick.StopAllMotors('Coast');
 					obj.brick.MoveMotorAngleRel(strcat(rightMotor, leftMotor), obj.driveSpeed, numRot * 360, 'Coast');
-					obj.brick.WaitForMotor(strcat(rightMotor, leftMotor));
-					obj.stopDrive();
+					obj.waitForMotors();
 					obj.turnLeft();
 					obj.startDrive(obj.driveSpeed, obj.driveSpeed);
 					wallSeen = false;
 					disp("no longer tracking wall");
-					obj.steer_mode = "none";
+					% obj.steer_mode = "none";
 				elseif turnTouch
 					disp("right turn");
 					obj.stopDrive();
 					obj.startDrive(-obj.driveSpeed, -obj.driveSpeed);
 					pause(0.25);
 					obj.turnRight();
-					obj.steer_mode = "none";
+					% obj.steer_mode = "none";
 				elseif killTouch
 					obj.b_inAuto = false;
 					obj.brick.StopAllMotors();
@@ -130,37 +131,7 @@ classdef BotController
 				% STEP 3: DRIVING & STEERING
 				if wallSeen
 
-					if steerMode == 1		
-
-						if ultraDist == obj.steer_val
-							% steer straight
-							if obj.steer_mode ~= "straight"
-								% power both motors equally
-								disp("straight");
-								obj.startDrive(obj.driveSpeed, obj.driveSpeed);
-								obj.steer_mode = "straight";
-							end
-						elseif ultraDist < obj.steer_val
-							% steer away
-							if obj.steer_mode ~= "away"
-								% reduce power on right motor
-								disp("away");
-								obj.startDrive(obj.driveSpeed - obj.steer_amt, obj.driveSpeed);
-								obj.steer_mode = "away";
-							end
-						elseif ultraDist > obj.steer_val
-							% steer toward
-							if obj.steer_mode ~= "toward"
-								% reduce power on left motor
-								disp("toward");
-								obj.startDrive(obj.driveSpeed, obj.driveSpeed - obj.steer_amt);
-								obj.steer_mode = "toward";
-							end
-						end
-
-					elseif steerMode == 2
-
-						if ultraDist > min && ultraDist < max
+						if ultraDist > obj.steer_min && ultraDist < obj.steer_max
 							% steer straight
 							if obj.steer_mode ~= "straight"
 								% power both motors equally
@@ -169,7 +140,7 @@ classdef BotController
 								obj.steer_mode = "straight";
 							end
 						else
-							if ultraDist < min
+							if ultraDist < obj.steer_min
 								% steer away
 								if obj.steer_mode ~= "away"
 									% reduce power on right motor
@@ -177,7 +148,7 @@ classdef BotController
 									obj.startDrive(obj.driveSpeed - obj.steer_amt, obj.driveSpeed);
 									obj.steer_mode = "away";
 								end
-							elseif ultraDist > max
+							elseif ultraDist > obj.steer_max
 								% steer toward
 								if obj.steer_mode ~= "toward"
 									% reduce power on left motor
@@ -253,6 +224,8 @@ classdef BotController
 		
 		function turn(obj, degrees, direction)
 
+			obj.stopDrive();
+			
 			radian = obj.turnDiam / 2;
 			turnDist = deg2rad(degrees) * radian;
 			numRot = turnDist / obj.wheelCircum;
@@ -273,46 +246,52 @@ classdef BotController
 		
 		function turnRight(obj)
 
-			radian = obj.turnDiam / 2;
-			turnDist = pi / 2 * radian;
-			numRot = turnDist / obj.wheelCircum;
+			% radian = obj.turnDiam / 2;
+			% turnDist = pi / 2 * radian;
+			% numRot = turnDist / obj.wheelCircum;
 
-			rightMotor = obj.map_ports("RIGHT_MOTOR");
-			leftMotor = obj.map_ports("LEFT_MOTOR");
+			% rightMotor = obj.map_ports("RIGHT_MOTOR");
+			% leftMotor = obj.map_ports("LEFT_MOTOR");
 
-			obj.brick.MoveMotorAngleRel(rightMotor, obj.turnSpeed, numRot * 360, 'Brake');
-			obj.brick.MoveMotorAngleRel(leftMotor, -obj.turnSpeed, numRot * 360, 'Brake');
-			obj.waitForMotors();
+			% obj.brick.MoveMotorAngleRel(rightMotor, obj.turnSpeed, numRot * 360, 'Brake');
+			% obj.brick.MoveMotorAngleRel(leftMotor, -obj.turnSpeed, numRot * 360, 'Brake');
+			% obj.waitForMotors();
+
+			obj.turn(90, "RIGHT");
 
 		end
 		
 		function turnLeft(obj)
 
-			radian = obj.turnDiam / 2;
-			turnDist = pi / 2 * radian;
-			numRot = (turnDist * 0.9) / obj.wheelCircum;
+			% radian = obj.turnDiam / 2;
+			% turnDist = pi / 2 * radian;
+			% numRot = (turnDist * 0.9) / obj.wheelCircum;
 
-			rightMotor = obj.map_ports("RIGHT_MOTOR");
-			leftMotor = obj.map_ports("LEFT_MOTOR");
+			% rightMotor = obj.map_ports("RIGHT_MOTOR");
+			% leftMotor = obj.map_ports("LEFT_MOTOR");
 
-			obj.brick.MoveMotorAngleRel(rightMotor, -obj.turnSpeed, numRot * 360, 'Brake');
-			obj.brick.MoveMotorAngleRel(leftMotor, obj.turnSpeed, numRot * 360, 'Brake');
-			obj.waitForMotors();
+			% obj.brick.MoveMotorAngleRel(rightMotor, -obj.turnSpeed, numRot * 360, 'Brake');
+			% obj.brick.MoveMotorAngleRel(leftMotor, obj.turnSpeed, numRot * 360, 'Brake');
+			% obj.waitForMotors();
+
+			obj.turn(90, "LEFT");
 
 		end
 		
 		function turnAbout(obj)
 
-			radian = obj.turnDiam / 2;
-			turnDist = pi * radian;
-			numRot = turnDist / obj.wheelCircum;
+			% radian = obj.turnDiam / 2;
+			% turnDist = pi * radian;
+			% numRot = turnDist / obj.wheelCircum;
 
-			rightMotor = obj.map_ports("RIGHT_MOTOR");
-			leftMotor = obj.map_ports("LEFT_MOTOR");
+			% rightMotor = obj.map_ports("RIGHT_MOTOR");
+			% leftMotor = obj.map_ports("LEFT_MOTOR");
 
-			obj.brick.MoveMotorAngleRel(rightMotor, obj.turnSpeed, numRot * 360, 'Brake');
-			obj.brick.MoveMotorAngleRel(leftMotor, -obj.turnSpeed, numRot * 360, 'Brake');
-			obj.waitForMotors();
+			% obj.brick.MoveMotorAngleRel(rightMotor, obj.turnSpeed, numRot * 360, 'Brake');
+			% obj.brick.MoveMotorAngleRel(leftMotor, -obj.turnSpeed, numRot * 360, 'Brake');
+			% obj.waitForMotors();
+
+			obj.turn(180, "RIGHT");
 
 		end
 		

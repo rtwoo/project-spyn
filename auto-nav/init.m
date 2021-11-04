@@ -13,12 +13,14 @@ wheelDiam = 5.715;
 turnDiam = 12.065;
 
 % desired distance from wall when steering (cm)
-steer_val = 16;
+steer_min = 14;
+steer_max = 16;
 % motor power reduction when steering
 steer_amt = driveSpeed * 0.2;
 
 % maximum allowed distance from wall before left turn is performed
-wall_dist_max = 40;
+wall_dist_max = 45;
+corner_clear_dist = 28.5;
 
 ports = containers.Map(...
 {'RIGHT_MOTOR', 'LEFT_MOTOR', 'TOUCH', 'ULTRA', 'COLOR', 'KILL'},...
@@ -31,5 +33,7 @@ colorTol = 10;
 
 % BotController constructor
 bot = BotController(brick, driveSpeed, turnSpeed,...
-				wheelDiam, turnDiam, steer_val, steer_amt, wall_dist_max, ports, colors, colorTol);
+				wheelDiam, turnDiam, steer_min, steer_max,...
+				steer_amt, wall_dist_max, corner_clear_dist,...
+				ports, colors, colorTol);
 % 	bot.beginNav();
