@@ -1,4 +1,5 @@
-function AdvancedController(botController)
+% function AdvancedController(botController)
+function AdvancedController()
 
 	fig = figure('Name', 'EV3 Controller', 'KeyPressFcn', @handleKeyDown, 'KeyReleaseFcn', @handleKeyUp);
 	right = 'D';
@@ -7,7 +8,9 @@ function AdvancedController(botController)
 	speed = 10;
 	turnSpeed = 10;
 	loaderSpeed = 3;
-	brick = botController.brick;
+	% brick = botController.brick;
+	brick = 0;
+	botController = 0;
 
 	motorStates = containers.Map(...
 		{'inForward', 'inReverse', 'inLeft', 'inRight', 'inTurnLeft', 'inTurnRight', 'inBrake', 'inRaise', 'inLower'},...
@@ -46,7 +49,7 @@ function AdvancedController(botController)
 		motorStates = userData.MotorStates;
 		beep = userData.BeepTimer;
 		controller = userData.BotController;
-% 		fprintf("Pressed: " + event.Key + "\n");
+		fprintf("Pressed: " + event.Key + "\n");
 		
 		switch event.Key
 
@@ -121,6 +124,17 @@ function AdvancedController(botController)
 					brick.MoveMotor(loader, -loaderSpeed);
 					motorStates('inLower') = true;
 					motorStates('inRaise') = false;
+				end
+			case 'comma'
+				% reduce speed
+				userData.Speed = userData.Speed - 5;
+				if userData.Speed <= 0
+					userData.Speed = 5;
+				end
+			case 'period'
+				userData.Speed = userData.Speed + 5;
+				if userData.Speed > 100
+					userData.Speed = 100;
 				end
 			case 'escape'
 				close(src);
