@@ -25,13 +25,12 @@ corner_clear_dist = 28.5;
 ports = containers.Map(...
 {'RIGHT_MOTOR', 'LEFT_MOTOR', 'TOUCH', 'ULTRA', 'COLOR', 'KILL'},...
 {'D'          , 'A'         , 4      , 2      , 3      , 1     });
-red = [110, 15, 15];
-yellow = [147, 86, 18];
-green = [23, 66, 20];
-blue = [15, 41, 64];
+red = [60, 10, 10];
+
 colors = containers.Map(...
 {'STOP'     , 'PICKUP'   , 'DROPOFF'  , 'START' },...
-{red        , yellow     , green      , blue});
+{red, [15, 35, 15], [85, 45, 15], [10, 20, 40]});
+% red, yellow, green, blue
 colorTol = 10;
 
 % BotController constructor

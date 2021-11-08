@@ -1,16 +1,19 @@
-% function AdvancedController(botController)
-function AdvancedController()
+
+
+function AdvancedController(botController)
+% function AdvancedController()
 
 	fig = figure('Name', 'EV3 Controller', 'KeyPressFcn', @handleKeyDown, 'KeyReleaseFcn', @handleKeyUp);
 	right = 'D';
 	left = 'A';
 	loader = 'C';
-	speed = 10;
+	global advDriveSpeed;
+	advDriveSpeed = 10;
 	turnSpeed = 10;
 	loaderSpeed = 3;
-	% brick = botController.brick;
-	brick = 0;
-	botController = 0;
+	brick = botController.brick;
+% 	brick = 0;
+% 	botController = 0;
 
 	motorStates = containers.Map(...
 		{'inForward', 'inReverse', 'inLeft', 'inRight', 'inTurnLeft', 'inTurnRight', 'inBrake', 'inRaise', 'inLower'},...
@@ -28,7 +31,6 @@ function AdvancedController()
 		'Right', right,...
 		'Left', left,...
 		'Loader', loader,...
-		'Speed', speed,...
 		'TurnSpeed', turnSpeed,...
 		'LoaderSpeed', loaderSpeed,...
 		'MotorStates', motorStates,...
@@ -43,18 +45,19 @@ function AdvancedController()
 		right = userData.Right;
 		left = userData.Left;
 		loader = userData.Loader;
-		speed = userData.Speed;
-		turnSpeed = userData.TurnSpeed;
+		speed = advDriveSpeed;
+		turnSpeed = advDriveSpeed;
 		loaderSpeed = userData.LoaderSpeed;
 		motorStates = userData.MotorStates;
 		beep = userData.BeepTimer;
 		controller = userData.BotController;
-		fprintf("Pressed: " + event.Key + "\n");
+% 		fprintf("Pressed: " + event.Key + "\n");
 		
 		switch event.Key
 
 			case 'w' % forward
 				if ~motorStates('inForward')
+					disp(speed);
 					overrideMovement(motorStates);
 					brick.MoveMotor(strcat(right, left), speed);
 					motorStates('inForward') = true;
@@ -127,15 +130,17 @@ function AdvancedController()
 				end
 			case 'comma'
 				% reduce speed
-				userData.Speed = userData.Speed - 5;
-				if userData.Speed <= 0
-					userData.Speed = 5;
+				advDriveSpeed = advDriveSpeed - 5;
+				if advDriveSpeed <= 0
+					advDriveSpeed = 5;
 				end
+				fprintf("Speed: " + advDriveSpeed + "\n");
 			case 'period'
-				userData.Speed = userData.Speed + 5;
-				if userData.Speed > 100
-					userData.Speed = 100;
+				advDriveSpeed = advDriveSpeed + 5;
+				if advDriveSpeed > 100
+					advDriveSpeed = 100;
 				end
+				fprintf("Speed: " + advDriveSpeed + "\n");
 			case 'escape'
 				close(src);
 				if ~controller.hasPickedUp
@@ -153,7 +158,7 @@ function AdvancedController()
 		right = userData.Right;
 		left = userData.Left;
 		loader = userData.Loader;
-		speed = userData.Speed;
+		speed = advDriveSpeed;
 		turnSpeed = userData.TurnSpeed;
 		motorStates = userData.MotorStates;
 		beep = userData.BeepTimer;

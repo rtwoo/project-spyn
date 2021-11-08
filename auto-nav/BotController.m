@@ -27,7 +27,9 @@ classdef BotController
 	methods
 
 		function obj = BotController(brick, driveSpeed, turnSpeed,...
-			wheelDiam, turnDiam, steer_min, steer_max, wall_dist_max, ports, colors, colorTol)
+			wheelDiam, turnDiam, steer_min, steer_max,...
+			steer_amt, wall_dist_max, corner_clear_dist,...
+			ports, colors, colorTol)
 
 			obj.brick = brick;
 			obj.b_inAuto = false;
@@ -74,12 +76,14 @@ classdef BotController
 					case 'PICKUP'
 						if ~obj.hasPickedUp
 							% enter manual controller
+							obj.stopDrive();
 							AdvancedController(obj);
 							obj.b_inAuto = false;
 							continue;
 						end
 					case 'DROPOFF'
 						if obj.hasPickedUp
+							obj.stopDrive();
 							% enter manual controller
 							AdvancedController(obj);
 							obj.b_inAuto = false;
@@ -91,9 +95,9 @@ classdef BotController
 						end
 				end
 
-				ultraDist = obj.brick.UltrasonicDist(obj.map_ports("ULTRA"));
-				turnTouch = obj.brick.TouchPressed(obj.map_ports("TOUCH"));
-				killTouch = obj.brick.TouchPressed(obj.map_ports("KILL"));
+				ultraDist = obj.brick.UltrasonicDist(obj.map_ports('ULTRA'));
+				turnTouch = obj.brick.TouchPressed(obj.map_ports('TOUCH'));
+				killTouch = obj.brick.TouchPressed(obj.map_ports('KILL'));
 
 				if ultraDist < obj.wall_dist_max && ~wallSeen
 					disp("tracking wall");
@@ -114,14 +118,14 @@ classdef BotController
 					obj.startDrive(obj.driveSpeed, obj.driveSpeed);
 					wallSeen = false;
 					disp("no longer tracking wall");
-					% obj.steer_mode = "none";
+					obj.steer_mode = "none";
 				elseif turnTouch
 					disp("right turn");
 					obj.stopDrive();
 					obj.startDrive(-obj.driveSpeed, -obj.driveSpeed);
 					pause(0.25);
 					obj.turnRight();
-					% obj.steer_mode = "none";
+					obj.steer_mode = "none";
 				elseif killTouch
 					obj.b_inAuto = false;
 					obj.brick.StopAllMotors();
@@ -158,8 +162,6 @@ classdef BotController
 								end
 							end
 						end
-
-					end
 
 				end
 
