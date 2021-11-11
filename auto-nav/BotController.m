@@ -106,11 +106,11 @@ classdef BotController
 
 				% STEP 2: TURNING
 				if ultraDist > obj.wall_dist_max && wallSeen
+
 					disp("left turn");
 					numRot = obj.corner_clear_dist / obj.wheelCircum;
 					rightMotor = obj.map_ports('RIGHT_MOTOR');
 					leftMotor = obj.map_ports('LEFT_MOTOR');
-					% obj.stopDrive();
 					obj.brick.StopAllMotors('Coast');
 					obj.brick.MoveMotorAngleRel(strcat(rightMotor, leftMotor), obj.driveSpeed, numRot * 360, 'Coast');
 					obj.waitForMotors();
@@ -119,17 +119,22 @@ classdef BotController
 					wallSeen = false;
 					disp("no longer tracking wall");
 					obj.steer_mode = "none";
+
 				elseif turnTouch
+
 					disp("right turn");
 					obj.stopDrive();
 					obj.startDrive(-obj.driveSpeed, -obj.driveSpeed);
 					pause(0.25);
 					obj.turnRight();
 					obj.steer_mode = "none";
+
 				elseif killTouch
+
 					obj.b_inAuto = false;
 					obj.brick.StopAllMotors();
 					continue;
+					
 				end
 
 				% STEP 3: DRIVING & STEERING
