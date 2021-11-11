@@ -7,6 +7,8 @@ greens = [];
 blues = [];
 
 t = timer;
+% for color calibration, use the "Mean" tab in the workspace
+
 t.TasksToExecute = 10;
 t.ExecutionMode = 'fixedDelay';
 t.TimerFcn = @record;
