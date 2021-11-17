@@ -174,6 +174,7 @@ classdef BotController
 			
 		end
 
+		% DEBUGGING TEST FUNCTIONS
 		function p_driveTest(obj, rightSpeed, leftSpeed, duration)
 			obj.startDrive(rightSpeed, leftSpeed);
 			pause(duration);
